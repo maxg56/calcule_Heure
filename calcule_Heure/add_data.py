@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import csv
 import os
+from calcule_Heure.config import get_duree_travail, get_format_heure, get_format_date
 
 fichier_csv = 'calcule_Heure/horaires.csv'
 
@@ -28,7 +29,7 @@ def ajouter_donnees(heure_debut=None, heure_pause_debut=None, heure_pause_fin=No
                     print("Format incorrect, veuillez entrer au format HH:MM.")
 
     # Calcul de l'heure de départ
-    duree_travail = timedelta(hours=7, minutes=10)
+    duree_travail = get_duree_travail()  # Utilise la configuration
     heure_debut_dt = datetime.strptime(tab_heure_debut[0], "%H:%M")
     pause_debut = datetime.strptime(tab_heure_debut[1], "%H:%M")
     pause_fin = datetime.strptime(tab_heure_debut[2], "%H:%M")

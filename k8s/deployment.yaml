@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: calcule-horaires
+  namespace: horaires-app
+  labels:
+    app: calcule-horaires
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: calcule-horaires
+  template:
+    metadata:
+      labels:
+        app: calcule-horaires
+        version: v1
+    spec:
+      containers:
+      - name: horaires-app
+        image: calcule-horaires:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8501
+          name: http
+          protocol: TCP
+        env:
+        - name: STREAMLIT_SERVER_PORT
+          value: "8501"
+        - name: STREAMLIT_SERVER_ADDRESS
+          value: "0.0.0.0"
+        - name: STREAMLIT_SERVER_HEADLESS
+          value: "true"
+        - name: STREAMLIT_BROWSER_GATHER_USAGE_STATS
+          value: "false"
+        volumeMounts:
+        - name: data-volume
+          mountPath: /app/calcule_Heure
+        - name: config-volume
+          mountPath: /app/calcule_Heure/config.json
+          subPath: config.json
+        - name: streamlit-config
+          mountPath: /app/.streamlit/config.toml
+          subPath: streamlit-config.toml
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /_stcore/health
+            port: 8501
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /_stcore/health
+            port: 8501
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: horaires-data-pvc
+      - name: config-volume
+        configMap:
+          name: horaires-config
+          items:
+          - key: config.json
+            path: config.json
+      - name: streamlit-config
+        configMap:
+          name: horaires-config
+          items:
+          - key: streamlit-config.toml
+            path: streamlit-config.toml
+      restartPolicy: Always

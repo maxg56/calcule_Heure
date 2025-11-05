@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: horaires-app
+  labels:
+    name: horaires-app
+    environment: production

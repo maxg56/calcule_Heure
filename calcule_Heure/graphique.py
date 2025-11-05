@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import numpy as np
+from calcule_Heure.config import get_seuil_pause
 
 def generer_graphiques(horaires, depart_moy, arrivee_moy):
     """Génère les graphiques d'évolution des horaires."""
@@ -66,7 +67,9 @@ def generer_graphiques(horaires, depart_moy, arrivee_moy):
             result = np.interp(result, [vmin, midpoint, vmax], [0, 0.5, 1])
             return np.ma.masked_array(result)
 
-    norm = MidpointNormalize(vmin=min(durees_pause), vmax=max(durees_pause), midpoint=45)
+    # Utilise le seuil de pause configuré
+    seuil_pause = get_seuil_pause()
+    norm = MidpointNormalize(vmin=min(durees_pause), vmax=max(durees_pause), midpoint=seuil_pause)
     cmap = plt.cm.RdYlGn
     couleurs = [cmap(norm(val)) for val in durees_pause]
 
@@ -76,7 +79,7 @@ def generer_graphiques(horaires, depart_moy, arrivee_moy):
     ax3.set_xlabel("Date de saisie")
     ax3.set_ylabel("Durée de la pause (minutes)")
     ax3.grid(True, axis='y')
-    ax3.axhline(45, color='red', linestyle='--', linewidth=2, label='Seuil 45 min')
+    ax3.axhline(seuil_pause, color='red', linestyle='--', linewidth=2, label=f'Seuil {seuil_pause} min')
     ax3.legend()
     plt.tight_layout()
 

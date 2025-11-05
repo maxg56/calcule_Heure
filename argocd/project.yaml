@@ -1,0 +1,55 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: horaires-project
+  namespace: argocd
+  # Finalizer pour assurer la suppression propre
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Projet pour l'application de gestion des horaires
+
+  # Repositories sources autorisés
+  sourceRepos:
+    - 'https://github.com/maxg56/calcule_Heure.git'  # Remplacez par votre repo
+    - '*'  # Autoriser tous les repos (à restreindre en production)
+
+  # Destinations autorisées
+  destinations:
+    - namespace: 'horaires-app'
+      server: 'https://kubernetes.default.svc'
+    - namespace: 'horaires-*'
+      server: 'https://kubernetes.default.svc'
+
+  # Ressources Kubernetes autorisées à déployer
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+    - group: ''
+      kind: PersistentVolume
+
+  # Ressources dans le namespace
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+
+  # Permissions de synchronisation
+  # Activer la synchronisation automatique
+  syncWindows: []
+
+  # Roles pour le contrôle d'accès
+  roles:
+    - name: admin
+      description: Admin role for the project
+      policies:
+        - p, proj:horaires-project:admin, applications, *, horaires-project/*, allow
+      groups:
+        - horaires-admins
+
+    - name: developer
+      description: Developer role with read-only access
+      policies:
+        - p, proj:horaires-project:developer, applications, get, horaires-project/*, allow
+        - p, proj:horaires-project:developer, applications, sync, horaires-project/*, allow
+      groups:
+        - horaires-developers

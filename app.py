@@ -10,6 +10,7 @@ from graphique import generer_graphiques
 from add_data import ajouter_donnees
 from colcul import calculer_moyennes
 from open_csv import lire_horaires
+from config import charger_config, mettre_a_jour_config, reinitialiser_config, get_duree_travail
 
 # Configuration de la page
 st.set_page_config(
@@ -25,7 +26,7 @@ st.markdown("---")
 fichier_csv = 'calcule_Heure/horaires.csv'
 
 # Création d'onglets
-tab1, tab2 = st.tabs(["📝 Ajouter une Saisie", "📊 Analyser les Données"])
+tab1, tab2, tab3 = st.tabs(["📝 Ajouter une Saisie", "📊 Analyser les Données", "⚙️ Configuration"])
 
 # ========== ONGLET 1 : AJOUTER UNE SAISIE ==========
 with tab1:
@@ -143,6 +144,137 @@ with tab2:
             st.error(f"❌ Le fichier '{fichier_csv}' est introuvable.")
         except Exception as e:
             st.error(f"❌ Erreur lors de l'analyse : {str(e)}")
+
+# ========== ONGLET 3 : CONFIGURATION ==========
+with tab3:
+    st.header("⚙️ Configuration de l'Application")
+    st.write("Personnalisez les paramètres de calcul selon vos besoins.")
+
+    # Charger la configuration actuelle
+    config = charger_config()
+
+    st.subheader("Paramètres actuels")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.info(f"**Durée de travail**: {config['duree_travail_heures']}h {config['duree_travail_minutes']:02d}min")
+    with col2:
+        st.info(f"**Seuil de pause recommandé**: {config['seuil_pause_minutes']} minutes")
+
+    st.markdown("---")
+
+    # Formulaire de modification
+    st.subheader("Modifier les paramètres")
+
+    with st.form("formulaire_config"):
+        st.write("### Durée de travail quotidienne")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            heures = st.number_input(
+                "Heures",
+                min_value=0,
+                max_value=12,
+                value=config['duree_travail_heures'],
+                help="Nombre d'heures de travail effectif par jour"
+            )
+
+        with col2:
+            minutes = st.number_input(
+                "Minutes",
+                min_value=0,
+                max_value=59,
+                value=config['duree_travail_minutes'],
+                help="Minutes supplémentaires de travail"
+            )
+
+        st.write("### Seuil de pause")
+        seuil = st.number_input(
+            "Durée minimale de pause recommandée (minutes)",
+            min_value=0,
+            max_value=120,
+            value=config['seuil_pause_minutes'],
+            help="Utilisé pour le code couleur dans les graphiques"
+        )
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            save_button = st.form_submit_button("💾 Enregistrer", type="primary")
+
+        with col2:
+            reset_button = st.form_submit_button("🔄 Réinitialiser aux valeurs par défaut")
+
+        if save_button:
+            try:
+                nouvelle_config = mettre_a_jour_config(
+                    duree_heures=heures,
+                    duree_minutes=minutes,
+                    seuil_pause=seuil
+                )
+                st.success("✅ Configuration enregistrée avec succès!")
+                st.info(f"**Nouvelle durée de travail**: {heures}h {minutes:02d}min")
+                st.info(f"**Nouveau seuil de pause**: {seuil} minutes")
+                st.balloons()
+
+                # Afficher un message pour rafraîchir
+                st.warning("⚠️ Les modifications seront appliquées aux prochaines saisies. Rafraîchissez la page (F5) pour voir les changements dans les graphiques.")
+
+            except Exception as e:
+                st.error(f"❌ Erreur lors de la sauvegarde : {str(e)}")
+
+        if reset_button:
+            try:
+                config_default = reinitialiser_config()
+                st.success("✅ Configuration réinitialisée aux valeurs par défaut!")
+                st.info(f"**Durée de travail**: {config_default['duree_travail_heures']}h {config_default['duree_travail_minutes']:02d}min (7h10)")
+                st.info(f"**Seuil de pause**: {config_default['seuil_pause_minutes']} minutes")
+                st.warning("⚠️ Rafraîchissez la page (F5) pour voir les changements.")
+            except Exception as e:
+                st.error(f"❌ Erreur lors de la réinitialisation : {str(e)}")
+
+    st.markdown("---")
+
+    # Section d'information
+    st.subheader("ℹ️ Informations")
+
+    with st.expander("À quoi servent ces paramètres ?"):
+        st.write("""
+        **Durée de travail quotidienne:**
+        - Définit le nombre d'heures de travail effectif par jour
+        - Utilisée pour calculer automatiquement l'heure de départ
+        - Par défaut : 7h10 (7 heures et 10 minutes)
+
+        **Seuil de pause recommandé:**
+        - Durée minimale de pause recommandée
+        - Utilisé pour le code couleur dans les graphiques :
+          - 🟢 Vert : pause ≥ seuil (bien)
+          - 🔴 Rouge : pause < seuil (insuffisant)
+        - Par défaut : 45 minutes
+
+        **Note:** Les modifications affectent uniquement les nouveaux calculs. Les données historiques ne sont pas modifiées.
+        """)
+
+    with st.expander("Comment calculer mon heure de départ ?"):
+        st.write("""
+        **Formule de calcul:**
+
+        ```
+        Heure de départ = Heure d'arrivée + Durée de travail + Durée de pause
+        ```
+
+        **Exemple avec les valeurs par défaut (7h10 de travail) :**
+        - Arrivée : 08:00
+        - Pause : 12:00 → 12:45 (45 minutes)
+        - Calcul : 08:00 + 7h10 + 45min = 15:55
+        - **Départ : 15:55**
+
+        **Exemple avec 7h30 de travail :**
+        - Arrivée : 08:00
+        - Pause : 12:00 → 13:00 (1 heure)
+        - Calcul : 08:00 + 7h30 + 1h00 = 16:30
+        - **Départ : 16:30**
+        """)
 
 # ========== FOOTER ==========
 st.markdown("---")

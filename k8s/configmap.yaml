@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: horaires-config
+  namespace: horaires-app
+  labels:
+    app: calcule-horaires
+data:
+  # Configuration par défaut de l'application
+  config.json: |
+    {
+      "duree_travail_heures": 7,
+      "duree_travail_minutes": 10,
+      "seuil_pause_minutes": 45,
+      "format_heure": "%H:%M",
+      "format_date": "%Y-%m-%d %H:%M:%S"
+    }
+
+  # Configuration Streamlit
+  streamlit-config.toml: |
+    [theme]
+    primaryColor = "#FF4B4B"
+    backgroundColor = "#FFFFFF"
+    secondaryBackgroundColor = "#F0F2F6"
+    textColor = "#262730"
+    font = "sans serif"
+
+    [server]
+    headless = true
+    port = 8501
+    address = "0.0.0.0"
+
+    [browser]
+    gatherUsageStats = false

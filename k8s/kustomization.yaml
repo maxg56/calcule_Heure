@@ -1,0 +1,33 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: horaires-app
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - pvc.yaml
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+
+# Labels communs à toutes les ressources
+commonLabels:
+  app: calcule-horaires
+  managed-by: argocd
+
+# Annotations communes
+commonAnnotations:
+  contact: devops@example.com
+  documentation: https://github.com/maxg56/calcule_Heure
+
+# Images à utiliser (pour faciliter les mises à jour)
+images:
+  - name: calcule-horaires
+    newName: calcule-horaires
+    newTag: latest
+
+# Configuration des replicas (peut être surchargé par environnement)
+replicas:
+  - name: calcule-horaires
+    count: 1
