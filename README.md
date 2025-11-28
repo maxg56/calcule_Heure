@@ -3,8 +3,6 @@
 Application web interactive pour gérer et analyser vos horaires de travail. Calculez automatiquement votre heure de départ en fonction de vos heures d'arrivée et de pause, et visualisez vos statistiques avec des graphiques interactifs.
 
 [![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Kubernetes](https://img.shields.io/badge/kubernetes-%23326ce5.svg?style=flat&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
-[![ArgoCD](https://img.shields.io/badge/ArgoCD-EF7B4D?style=flat&logo=argo&logoColor=white)](https://argo-cd.readthedocs.io/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=flat&logo=streamlit&logoColor=white)](https://streamlit.io/)
 
 ## 🚀 Fonctionnalités
@@ -27,12 +25,6 @@ Application web interactive pour gérer et analyser vos horaires de travail. Cal
 - **Réinitialisation aux valeurs par défaut** : Retour rapide à la configuration initiale
 - **Aide intégrée** : Explications détaillées de chaque paramètre
 
-### Déploiement
-- **Docker** : Conteneurisation complète de l'application
-- **Kubernetes** : Manifestes prêts pour le déploiement
-- **ArgoCD** : Configuration GitOps pour le déploiement continu
-- **Haute disponibilité** : Health checks et probes configurés
-
 ## 📋 Prérequis
 
 **Pour l'exécution locale:**
@@ -42,11 +34,6 @@ Application web interactive pour gérer et analyser vos horaires de travail. Cal
 **Pour Docker:**
 - Docker >= 20.10
 - Docker Compose >= 2.0 (optionnel)
-
-**Pour Kubernetes:**
-- Cluster Kubernetes fonctionnel
-- kubectl configuré
-- ArgoCD installé (optionnel)
 
 ## 🔧 Installation
 
@@ -62,43 +49,21 @@ pip install -r requirements.txt
 
 # 3. Lancer l'application
 streamlit run app.py
-# ou utiliser le Makefile
-make run
 ```
 
-### Option 2: Docker
+### Option 2: Docker (Recommandé)
 
 ```bash
-# Méthode 1: Docker simple
+# Méthode 1: Docker Compose (le plus simple)
+docker-compose up -d
+
+# Méthode 2: Docker simple
 docker build -t calcule-horaires .
 docker run -d -p 8501:8501 calcule-horaires
 
-# Méthode 2: Docker Compose (recommandé)
-docker-compose up -d
-
-# Méthode 3: Utiliser le Makefile
-make docker-build
-make docker-run
-
-# Méthode 4: Script automatique
+# Méthode 3: Script automatique
 chmod +x build.sh
 ./build.sh
-```
-
-### Option 3: Kubernetes
-
-Consultez le guide détaillé: [DOCKER.md](DOCKER.md) et [argocd/README.md](argocd/README.md)
-
-```bash
-# Déploiement simple
-kubectl apply -f k8s/
-
-# Avec ArgoCD
-kubectl apply -f argocd/project.yaml
-kubectl apply -f argocd/application.yaml
-
-# Utiliser le Makefile
-make k8s-deploy
 ```
 
 ## 🎯 Utilisation
@@ -118,7 +83,6 @@ L'application s'ouvre automatiquement dans votre navigateur à `http://localhost
 - Consultez les statistiques moyennes (arrivée, départ, pause)
 - Visualisez les graphiques d'évolution
 - Accédez au tableau complet de vos données
-- Exportez vos données si nécessaire
 
 #### Onglet 3: "⚙️ Configuration"
 - **Modifier la durée de travail**: Ajustez les heures et minutes de travail quotidien
@@ -137,22 +101,6 @@ Options du menu :
 - **2** : Analyser les données et générer les graphiques
 - **3** : Quitter
 
-### Utilisation du Makefile
-
-```bash
-# Voir toutes les commandes disponibles
-make help
-
-# Commandes courantes
-make install          # Installer les dépendances
-make run             # Lancer l'application
-make docker-build    # Build Docker
-make docker-run      # Lancer avec Docker
-make k8s-deploy      # Déployer sur Kubernetes
-make argocd-deploy   # Déployer avec ArgoCD
-make clean           # Nettoyer les fichiers temporaires
-```
-
 ## 📁 Structure du Projet
 
 ```
@@ -163,7 +111,6 @@ calcule_Heure/
 ├── Dockerfile                  # Image Docker
 ├── docker-compose.yml          # Orchestration Docker
 ├── .dockerignore              # Exclusions Docker
-├── Makefile                   # Commandes automatisées
 ├── build.sh                   # Script de build Docker
 ├── run.sh / run.bat          # Scripts de lancement
 │
@@ -177,20 +124,6 @@ calcule_Heure/
 │   ├── utiles.py              # Fonctions utilitaires
 │   ├── horaires.csv           # Fichier de données
 │   └── config.json            # Configuration de l'app
-│
-├── k8s/                       # Manifestes Kubernetes
-│   ├── namespace.yaml
-│   ├── configmap.yaml
-│   ├── pvc.yaml
-│   ├── deployment.yaml
-│   ├── service.yaml
-│   ├── ingress.yaml
-│   └── kustomization.yaml
-│
-├── argocd/                    # Configuration ArgoCD
-│   ├── application.yaml
-│   ├── project.yaml
-│   └── README.md
 │
 ├── .streamlit/                # Configuration Streamlit
 │   └── config.toml
@@ -237,67 +170,74 @@ STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
 
 ## 🐳 Docker
 
-### Build et Exécution
+### Lancement Rapide
 
 ```bash
-# Build
+# Avec Docker Compose (recommandé)
+docker-compose up -d
+
+# Voir les logs
+docker-compose logs -f
+
+# Arrêter l'application
+docker-compose down
+```
+
+### Build et Exécution Manuelle
+
+```bash
+# Build l'image
 docker build -t calcule-horaires:latest .
 
 # Run simple
-docker run -d -p 8501:8501 calcule-horaires:latest
+docker run -d -p 8501:8501 --name calcule-horaires calcule-horaires:latest
 
-# Run avec volumes (persistance)
-docker run -d -p 8501:8501 \
+# Run avec volumes (persistance des données)
+docker run -d -p 8501:8501 --name calcule-horaires \
   -v $(pwd)/calcule_Heure/horaires.csv:/app/calcule_Heure/horaires.csv \
   -v $(pwd)/calcule_Heure/config.json:/app/calcule_Heure/config.json \
   calcule-horaires:latest
 ```
 
-### Docker Compose
+### Commandes Docker Utiles
 
 ```bash
-# Démarrer
-docker-compose up -d
+# Voir les logs
+docker logs -f calcule-horaires
 
-# Logs
-docker-compose logs -f
+# Arrêter le conteneur
+docker stop calcule-horaires
 
-# Arrêter
-docker-compose down
+# Redémarrer le conteneur
+docker restart calcule-horaires
+
+# Supprimer le conteneur
+docker rm calcule-horaires
+
+# Entrer dans le conteneur
+docker exec -it calcule-horaires bash
+
+# Voir les statistiques
+docker stats calcule-horaires
+```
+
+### Script de Build Automatique
+
+```bash
+# Rendre le script exécutable
+chmod +x build.sh
+
+# Lancer le build
+./build.sh
+
+# Build avec un tag spécifique
+./build.sh v1.0.0
+
+# Build et push vers un registry
+REGISTRY=ghcr.io/username ./build.sh
 ```
 
 Consultez le guide complet: [DOCKER.md](DOCKER.md)
-
-## ☸️ Kubernetes & ArgoCD
-
-### Déploiement Kubernetes
-
-```bash
-# Déployer toutes les ressources
-kubectl apply -f k8s/
-
-# Vérifier le déploiement
-kubectl get all -n horaires-app
-
-# Accéder à l'application (port-forward)
-kubectl port-forward -n horaires-app svc/calcule-horaires-service 8501:8501
-```
-
-### Déploiement ArgoCD
-
-```bash
-# Créer le projet et l'application
-kubectl apply -f argocd/project.yaml
-kubectl apply -f argocd/application.yaml
-
-# Synchroniser
-argocd app sync calcule-horaires
-
-# Voir le statut
-argocd app get calcule-horaires
-```
-
-**Guide complet:** [argocd/README.md](argocd/README.md)
 
 ## 🔧 Configuration Avancée
 
@@ -310,9 +250,10 @@ La durée de travail par défaut est **7h10**. Pour la modifier:
 2. Modifiez "Durée de travail quotidienne"
 3. Cliquez sur "💾 Enregistrer"
 
-**Via le code:**
-- Éditez `calcule_Heure/config.py`
-- Modifiez `DEFAULT_CONFIG["duree_travail_heures"]` et `DEFAULT_CONFIG["duree_travail_minutes"]`
+**Via le fichier de configuration:**
+- Éditez `calcule_Heure/config.json`
+- Modifiez `duree_travail_heures` et `duree_travail_minutes`
+- Redémarrez l'application
 
 ### Personnalisation du Seuil de Pause
 
@@ -323,9 +264,10 @@ Le seuil de pause par défaut est **45 minutes**. Pour le modifier:
 2. Modifiez "Durée minimale de pause recommandée"
 3. Cliquez sur "💾 Enregistrer"
 
-**Via le code:**
-- Éditez `calcule_Heure/config.py`
-- Modifiez `DEFAULT_CONFIG["seuil_pause_minutes"]`
+**Via le fichier de configuration:**
+- Éditez `calcule_Heure/config.json`
+- Modifiez `seuil_pause_minutes`
+- Redémarrez l'application
 
 ## 📝 Format des Données
 
@@ -352,68 +294,22 @@ textColor = "#262730"
 font = "sans serif"
 ```
 
-## 🧪 Tests
-
-```bash
-# Exécuter les tests
-make test
-
-# Avec couverture
-python -m pytest tests/ -v --cov=calcule_Heure
-
-# Lint
-make lint
-```
-
-## 🚀 Déploiement en Production
-
-### Checklist
-
-- [ ] Configuration personnalisée définie
-- [ ] Données de test supprimées
-- [ ] Image Docker buildée et testée
-- [ ] Variables d'environnement configurées
-- [ ] Volumes configurés pour la persistance
-- [ ] Health checks testés
-- [ ] Limites de ressources définies
-- [ ] Monitoring configuré
-- [ ] Backups configurés
-- [ ] Documentation à jour
-
-### Bonnes Pratiques
-
-1. **Sécurité**:
-   - Ne pas exposer directement l'application (utiliser un reverse proxy)
-   - Activer HTTPS via Ingress avec cert-manager
-   - Limiter les ressources (CPU, mémoire)
-
-2. **Persistance**:
-   - Utiliser des PersistentVolumes pour les données
-   - Configurer des backups réguliers
-   - Tester les procédures de restauration
-
-3. **Monitoring**:
-   - Configurer des alertes sur les health checks
-   - Surveiller l'utilisation des ressources
-   - Logger les erreurs importantes
-
 ## 🐛 Dépannage
 
 ### L'application ne démarre pas
 
 ```bash
-# Vérifier les logs
+# Vérifier les logs Docker
 docker logs calcule-horaires
-# ou
-kubectl logs -n horaires-app -l app=calcule-horaires
 
-# Vérifier les dépendances
+# Vérifier les dépendances (mode local)
 pip list
 ```
 
 ### Le fichier CSV n'est pas trouvé
 
 - Le fichier `horaires.csv` est créé automatiquement lors de la première saisie
+- En Docker, vérifiez que les volumes sont correctement montés
 - Vérifiez les permissions d'écriture: `ls -la calcule_Heure/`
 
 ### Les graphiques ne s'affichent pas
@@ -433,12 +329,89 @@ rm calcule_Heure/config.json
 # Allez dans Configuration → Réinitialiser
 ```
 
+### Port 8501 déjà utilisé
+
+```bash
+# Trouver le processus utilisant le port
+lsof -i :8501
+
+# Utiliser un autre port avec Docker
+docker run -d -p 9000:8501 calcule-horaires:latest
+```
+
+### Problèmes Docker
+
+```bash
+# Nettoyer les conteneurs arrêtés
+docker container prune
+
+# Nettoyer les images non utilisées
+docker image prune
+
+# Reconstruire sans cache
+docker build --no-cache -t calcule-horaires:latest .
+
+# Vérifier l'état du conteneur
+docker inspect calcule-horaires
+```
+
+## 🚀 Déploiement en Production
+
+### Checklist
+
+- [ ] Configuration personnalisée définie
+- [ ] Données de test supprimées
+- [ ] Image Docker buildée et testée
+- [ ] Variables d'environnement configurées
+- [ ] Volumes configurés pour la persistance
+- [ ] Health checks testés
+- [ ] Limites de ressources définies (docker-compose)
+- [ ] Backups configurés
+- [ ] Documentation à jour
+
+### Bonnes Pratiques
+
+1. **Sécurité**:
+   - Ne pas exposer directement l'application (utiliser un reverse proxy comme Nginx)
+   - Activer HTTPS via reverse proxy
+   - Limiter les ressources dans docker-compose.yml
+
+2. **Persistance**:
+   - Utiliser des volumes nommés pour les données
+   - Configurer des backups réguliers du fichier CSV
+   - Tester les procédures de restauration
+
+3. **Monitoring**:
+   - Surveiller les logs Docker: `docker logs -f calcule-horaires`
+   - Surveiller l'utilisation des ressources: `docker stats calcule-horaires`
+   - Configurer des alertes sur les health checks
+
+### Exemple avec Reverse Proxy (Nginx)
+
+```nginx
+server {
+    listen 80;
+    server_name horaires.example.com;
+
+    location / {
+        proxy_pass http://localhost:8501;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
 ## 📚 Documentation
 
 - [Guide de Démarrage Rapide](QUICKSTART.md)
 - [Guide Docker Complet](DOCKER.md)
-- [Guide ArgoCD](argocd/README.md)
 - [Documentation Streamlit](https://docs.streamlit.io/)
+- [Documentation Docker](https://docs.docker.com/)
 
 ## 🤝 Contribution
 
@@ -462,12 +435,12 @@ Ce projet est open source et disponible sous licence MIT.
 
 - Streamlit pour le framework d'interface web
 - La communauté Python pour les bibliothèques
-- ArgoCD pour le déploiement GitOps
+- Docker pour la conteneurisation
 
 ## 📧 Support
 
 Pour toute question ou problème:
-- 📖 Consultez la [documentation](DOCKER.md)
+- 📖 Consultez la [documentation Docker](DOCKER.md)
 - 🐛 Ouvrez une [issue sur GitHub](https://github.com/maxg56/calcule_Heure/issues)
 - 📝 Consultez les [logs](#dépannage)
 
