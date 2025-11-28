@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: calcule-heure-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app/app
+      - ./horaires.db:/app/horaires.db
+    environment:
+      - APP_NAME=Calcule Heure API
+      - DEBUG=True
+    restart: unless-stopped
