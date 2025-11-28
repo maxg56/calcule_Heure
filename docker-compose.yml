@@ -1,15 +1,64 @@
 version: '3.8'
 
 services:
-  horaires-app:
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: calcule-heure-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount the backend code for development
+      - ./backend:/app
+      # Persist the database
+      - ./data:/app/data
+    environment:
+      - DATABASE_URL=sqlite:///./data/horaires.db
+      - DEBUG=false
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:8501
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+    networks:
+      - horaires-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: calcule-heure-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount the frontend code for development
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NODE_ENV=development
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - horaires-network
+
+  # Legacy Streamlit App (optional, for backward compatibility)
+  streamlit-app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: calcule-horaires
+    container_name: calcule-horaires-legacy
     ports:
       - "8501:8501"
     volumes:
-      # Persister les données et la configuration
       - ./calcule_Heure/horaires.csv:/app/calcule_Heure/horaires.csv
       - ./calcule_Heure/config.json:/app/calcule_Heure/config.json
     environment:
@@ -20,7 +69,12 @@ services:
     restart: unless-stopped
     networks:
       - horaires-network
+    profiles:
+      - legacy
 
 networks:
   horaires-network:
     driver: bridge
+
+volumes:
+  data:
