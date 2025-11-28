@@ -1,6 +1,7 @@
-import csv
+"""
+Module de compatibilité pour la lecture des horaires.
+Redirige vers csv_handler pour la logique réelle.
+"""
+from calcule_Heure.csv_handler import lire_horaires
 
-def lire_horaires(fichier):
-    """Lit les horaires depuis un fichier CSV."""
-    with open(fichier, mode='r', encoding='utf-8') as f:
-        return list(csv.DictReader(f))
+__all__ = ['lire_horaires']
