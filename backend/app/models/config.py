@@ -18,7 +18,7 @@ class Config(Base):
     duree_travail_heures = Column(Integer, nullable=False, default=7)
     duree_travail_minutes = Column(Integer, nullable=False, default=10)
     seuil_pause_minutes = Column(Integer, nullable=False, default=45)
-    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     __table_args__ = (
         CheckConstraint('id = 1', name='single_row_check'),
