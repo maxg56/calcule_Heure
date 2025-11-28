@@ -2,7 +2,7 @@
 Service métier pour les statistiques.
 """
 
-from datetime import datetime, time, timedelta
+from datetime import time
 from typing import Dict, Any, List
 from sqlalchemy.orm import Session
 from sqlalchemy import func
