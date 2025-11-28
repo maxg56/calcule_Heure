@@ -5,7 +5,6 @@ Service métier pour les statistiques.
 from datetime import time
 from typing import Dict, Any, List
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 
 from ..models.schedule import Schedule
 from ..models.config import Config
