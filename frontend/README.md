@@ -234,7 +234,7 @@ interface Schedule {
 
 ```bash
 # Ajouter un nouveau composant
-npx shadcn-ui@latest add [component-name]
+npx shadcn@latest add [component-name]
 ```
 
 ## 🐛 Dépannage
