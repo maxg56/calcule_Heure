@@ -2,7 +2,7 @@
 Modèle SQLAlchemy pour la table des horaires.
 """
 
-from datetime import datetime, time
+from datetime import datetime
 from sqlalchemy import Column, Integer, Time, DateTime
 from ..database import Base
 
