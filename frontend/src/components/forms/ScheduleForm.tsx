@@ -6,40 +6,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { z } from 'zod';
+import { api } from '@/lib/api';
+import type { Schedule, CreateScheduleInput } from '@/types';
 
-// Local definition of ScheduleFormData
-type ScheduleFormData = {
-  heure_debut: string;
-  heure_debut_pause: string;
-  heure_fin_pause: string;
-};
-
-// Local Zod schema for validation
+// Zod schema for validation
 const scheduleSchema = z.object({
   heure_debut: z.string().min(1, "L'heure de début est requise"),
   heure_debut_pause: z.string().min(1, "L'heure de début de pause est requise"),
   heure_fin_pause: z.string().min(1, "L'heure de fin de pause est requise"),
 });
 
-// Local mock API implementation
-const api = {
-  createSchedule: async (data: ScheduleFormData) => {
-    // Simulate API call and return a mock schedule object
-    return {
-      ...data,
-      heure_depart_calculee: "17:00", // Example calculated end time
-    };
-  },
-};
-import type { Schedule } from '@/types';
-
 interface ScheduleFormProps {
   onSuccess?: (schedule: Schedule) => void;
-  initialData?: Partial<ScheduleFormData>;
+  initialData?: Partial<CreateScheduleInput>;
 }
 
 export function ScheduleForm({ onSuccess, initialData }: ScheduleFormProps) {
-  const [formData, setFormData] = useState<ScheduleFormData>({
+  const [formData, setFormData] = useState<CreateScheduleInput>({
     heure_debut: initialData?.heure_debut || '',
     heure_debut_pause: initialData?.heure_debut_pause || '',
     heure_fin_pause: initialData?.heure_fin_pause || '',

@@ -38,19 +38,19 @@ def minutes_to_time(minutes: int) -> time:
     return time(hour=hours, minute=mins)
 
 
-def calculer_duree_pause(heure_pause_debut: time, heure_pause_fin: time) -> int:
+def calculer_duree_pause(heure_debut_pause: time, heure_fin_pause: time) -> int:
     """
     Calcule la durée de pause en minutes.
 
     Args:
-        heure_pause_debut: Heure de début de pause
-        heure_pause_fin: Heure de fin de pause
+        heure_debut_pause: Heure de début de pause
+        heure_fin_pause: Heure de fin de pause
 
     Returns:
         Durée de pause en minutes
     """
-    debut_minutes = time_to_minutes(heure_pause_debut)
-    fin_minutes = time_to_minutes(heure_pause_fin)
+    debut_minutes = time_to_minutes(heure_debut_pause)
+    fin_minutes = time_to_minutes(heure_fin_pause)
     return fin_minutes - debut_minutes
 
 
@@ -68,10 +68,10 @@ def get_statistics(db: Session) -> Dict[str, Any]:
 
     if not schedules:
         return {
-            "nombre_entrees": 0,
-            "heure_arrivee_moyenne": None,
-            "heure_depart_moyenne": None,
-            "duree_pause_moyenne": None
+            "total_entrees": 0,
+            "moyenne_arrivee": "00:00",
+            "moyenne_depart": "00:00",
+            "moyenne_pause_minutes": 0
         }
 
     # Calculer les moyennes
@@ -82,15 +82,15 @@ def get_statistics(db: Session) -> Dict[str, Any]:
     for schedule in schedules:
         total_arrivee += time_to_minutes(schedule.heure_debut)
         total_depart += time_to_minutes(schedule.heure_depart_calculee)
-        total_pause += calculer_duree_pause(schedule.heure_pause_debut, schedule.heure_pause_fin)
+        total_pause += calculer_duree_pause(schedule.heure_debut_pause, schedule.heure_fin_pause)
 
     count = len(schedules)
 
     return {
-        "nombre_entrees": count,
-        "heure_arrivee_moyenne": minutes_to_time(total_arrivee // count),
-        "heure_depart_moyenne": minutes_to_time(total_depart // count),
-        "duree_pause_moyenne": total_pause // count
+        "total_entrees": count,
+        "moyenne_arrivee": minutes_to_time(total_arrivee // count).strftime("%H:%M"),
+        "moyenne_depart": minutes_to_time(total_depart // count).strftime("%H:%M"),
+        "moyenne_pause_minutes": total_pause // count
     }
 
 
@@ -109,28 +109,44 @@ def get_charts_data(db: Session) -> Dict[str, Any]:
 
     if not schedules:
         return {
-            "dates": [],
-            "heures_arrivee": [],
-            "heures_depart": [],
-            "durees_pause": [],
-            "seuil_pause": config.seuil_pause_minutes if config else 45
+            "arrivee": [],
+            "depart": [],
+            "pause": []
         }
 
-    dates = []
-    heures_arrivee = []
-    heures_depart = []
-    durees_pause = []
+    arrivee_data = []
+    depart_data = []
+    pause_data = []
+
+    # Calculate averages for reference lines
+    total_arrivee = sum(time_to_minutes(s.heure_debut) for s in schedules)
+    total_depart = sum(time_to_minutes(s.heure_depart_calculee) for s in schedules)
+    count = len(schedules)
+    moyenne_arrivee = minutes_to_time(total_arrivee // count).strftime("%H:%M")
+    moyenne_depart = minutes_to_time(total_depart // count).strftime("%H:%M")
 
     for schedule in schedules:
-        dates.append(schedule.date_saisie.strftime("%Y-%m-%d"))
-        heures_arrivee.append(schedule.heure_debut.strftime("%H:%M"))
-        heures_depart.append(schedule.heure_depart_calculee.strftime("%H:%M"))
-        durees_pause.append(calculer_duree_pause(schedule.heure_pause_debut, schedule.heure_pause_fin))
+        date_str = schedule.date_saisie.strftime("%Y-%m-%d")
+
+        arrivee_data.append({
+            "date": date_str,
+            "heure_debut": schedule.heure_debut.strftime("%H:%M"),
+            "moyenne": moyenne_arrivee
+        })
+
+        depart_data.append({
+            "date": date_str,
+            "heure_depart": schedule.heure_depart_calculee.strftime("%H:%M"),
+            "moyenne": moyenne_depart
+        })
+
+        pause_data.append({
+            "date": date_str,
+            "duree_pause": calculer_duree_pause(schedule.heure_debut_pause, schedule.heure_fin_pause)
+        })
 
     return {
-        "dates": dates,
-        "heures_arrivee": heures_arrivee,
-        "heures_depart": heures_depart,
-        "durees_pause": durees_pause,
-        "seuil_pause": config.seuil_pause_minutes if config else 45
+        "arrivee": arrivee_data,
+        "depart": depart_data,
+        "pause": pause_data
     }

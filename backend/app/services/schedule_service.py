@@ -13,8 +13,8 @@ from ..schemas.schedule import ScheduleCreate, ScheduleUpdate
 
 def calculer_heure_depart(
     heure_debut: time,
-    heure_pause_debut: time,
-    heure_pause_fin: time,
+    heure_debut_pause: time,
+    heure_fin_pause: time,
     duree_travail_heures: int,
     duree_travail_minutes: int
 ) -> time:
@@ -23,8 +23,8 @@ def calculer_heure_depart(
 
     Args:
         heure_debut: Heure de début de travail
-        heure_pause_debut: Heure de début de pause
-        heure_pause_fin: Heure de fin de pause
+        heure_debut_pause: Heure de début de pause
+        heure_fin_pause: Heure de fin de pause
         duree_travail_heures: Durée de travail en heures
         duree_travail_minutes: Durée de travail en minutes
 
@@ -34,8 +34,8 @@ def calculer_heure_depart(
     # Convertir les time en datetime pour faciliter les calculs
     today = datetime.today()
     dt_debut = datetime.combine(today, heure_debut)
-    dt_pause_debut = datetime.combine(today, heure_pause_debut)
-    dt_pause_fin = datetime.combine(today, heure_pause_fin)
+    dt_pause_debut = datetime.combine(today, heure_debut_pause)
+    dt_pause_fin = datetime.combine(today, heure_fin_pause)
 
     # Calculer la durée de pause
     duree_pause = dt_pause_fin - dt_pause_debut
@@ -95,8 +95,8 @@ def create_schedule(db: Session, schedule: ScheduleCreate) -> Schedule:
     # Calculer l'heure de départ
     heure_depart = calculer_heure_depart(
         schedule.heure_debut,
-        schedule.heure_pause_debut,
-        schedule.heure_pause_fin,
+        schedule.heure_debut_pause,
+        schedule.heure_fin_pause,
         config.duree_travail_heures,
         config.duree_travail_minutes
     )
@@ -104,8 +104,8 @@ def create_schedule(db: Session, schedule: ScheduleCreate) -> Schedule:
     # Créer l'horaire
     db_schedule = Schedule(
         heure_debut=schedule.heure_debut,
-        heure_pause_debut=schedule.heure_pause_debut,
-        heure_pause_fin=schedule.heure_pause_fin,
+        heure_debut_pause=schedule.heure_debut_pause,
+        heure_fin_pause=schedule.heure_fin_pause,
         heure_depart_calculee=heure_depart
     )
 
@@ -140,12 +140,12 @@ def update_schedule(db: Session, schedule_id: int, schedule: ScheduleUpdate) -> 
         setattr(db_schedule, field, value)
 
     # Recalculer l'heure de départ si nécessaire
-    if any(field in update_data for field in ["heure_debut", "heure_pause_debut", "heure_pause_fin"]):
+    if any(field in update_data for field in ["heure_debut", "heure_debut_pause", "heure_fin_pause"]):
         config = db.query(Config).filter(Config.id == 1).first()
         heure_depart = calculer_heure_depart(
             db_schedule.heure_debut,
-            db_schedule.heure_pause_debut,
-            db_schedule.heure_pause_fin,
+            db_schedule.heure_debut_pause,
+            db_schedule.heure_fin_pause,
             config.duree_travail_heures,
             config.duree_travail_minutes
         )
