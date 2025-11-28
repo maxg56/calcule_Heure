@@ -3,7 +3,7 @@ Service métier pour les statistiques.
 """
 
 from datetime import time
-from typing import Dict, Any, List
+from typing import Dict, Any
 from sqlalchemy.orm import Session
 
 from ..models.schedule import Schedule
